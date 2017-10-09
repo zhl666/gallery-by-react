@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 // let yeomanImage = require('../images/yeoman.png');
 // 获取图片相关的数据
 // important:  json!
-var imageDatas = require('json!../data/imageDatas.json');
+var imageDatas = require('../data/imageDatas.json');
 // 利用自执行函数，将图片名信息转成图片URL路径信息 genImageURL
 
 imageDatas = (function(imageDatasArr){
@@ -28,6 +28,13 @@ function getRangeRandom(low, high) {
 	return Math.ceil(Math.random() * (high - low) + low);
 }
 
+/*
+ * 获取 0——30度之间店一个任意正负值
+*/
+function get30DegRandom() {
+	return ((Math.random() > 0.5 ? '' : '-') + Math.ceil(Math.random() * 30));
+}
+
 var ImgFigure = React.createClass({
 	render: function(){
 
@@ -35,6 +42,11 @@ var ImgFigure = React.createClass({
 		// 如果props属性中指定了这张图片的位置，则使用
 		if(this.props.arrange.pos) {
 			styleObj = this.props.arrange.pos;
+		}
+
+		// 如果图片的旋转角度有值并且不为0, 添加旋转角度
+		if(this.props.arrange.rotate) {
+			styleObj['transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
 		}
 
 		return (
@@ -86,14 +98,17 @@ class AppComponent extends React.Component {
   		vPosRangeX = vPosRange.x,
 
   		imgsArrangeTopArr = [],
-  		topImgNum = Math.ceil(Math.random() * 2),
+  		topImgNum = Math.floor(Math.random() * 2),
   		// 取一个或者不取
   		topImgSpliceIndex = 0,
 
-  		imgsArrangeCenterArr = imgsArrangeArr.slice(centerIndex, 1);
+  		imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1);
 
   		// 首先居中 centerIndex 的图片
   		imgsArrangeCenterArr[0].pos = centerPos;
+
+  		// 居中的 centerIndex 的图片不需要旋转
+  		imgsArrangeCenterArr[0].rotate = 0;
 
   		// 取出要布局上侧的图片的状态信息
   		topImgSpliceIndex = Math.ceil(Math.random() * (imgsArrangeArr.length - topImgNum));
@@ -101,10 +116,13 @@ class AppComponent extends React.Component {
 
   		// 布局位于上侧的图片
   		imgsArrangeTopArr.forEach(function(value, index){
-  			imgsArrangeTopArr[index].pos = {
-  				top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
-  				left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
-  			}
+  			imgsArrangeTopArr[index] = {
+  				pos: {
+	  				top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
+	  				left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
+	  			},
+	  			rotate: get30DegRandom()
+  			};
   		});
 
   		// 布局左右两侧的图片
@@ -118,10 +136,13 @@ class AppComponent extends React.Component {
   				hPosRangeLORX = hPosRangeRightSecX;
   			}
 
-  			imgsArrangeArr[i].pos = {
-  				top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
-  				left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
-  			}
+  			imgsArrangeArr[i] = {
+  				pos: {
+	  				top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
+	  				left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
+	  			},
+	  			rotate: get30DegRandom()
+  			};
   		}
 
   		if(imgsArrangeArr && imgsArrangeArr[0]) {
@@ -143,7 +164,8 @@ class AppComponent extends React.Component {
   			// 	pos: {
   			// 		left: 0,
   			// 		top: 0
-  			// 	}
+  			// 	},
+  			// rotate: 0 // 图片的旋转角度
   			// }
   		]
   	}
@@ -196,8 +218,8 @@ class AppComponent extends React.Component {
   	// 计算上侧图片排布的取值范围
   	this.Constant.vPosRange.topY[0] = -halfImgW;
   	this.Constant.vPosRange.topY[1] = halfStageH - halfImgH * 3;
-  	this.Constant.vPosRange.x[0] = halfImgW - imgW;
-  	this.Constant.vPosRange.x[1] = halfImgW;
+  	this.Constant.vPosRange.x[0] = halfStageW - imgW;
+  	this.Constant.vPosRange.x[1] = halfStageW;
 
   	this.rearrange(0);
 
@@ -217,7 +239,8 @@ class AppComponent extends React.Component {
 				pos: {
 					left: 0,
 					top: 0
-				}
+				},
+				rotate: 0
 			}
 		}
 
